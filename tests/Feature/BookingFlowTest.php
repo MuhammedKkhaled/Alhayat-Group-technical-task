@@ -36,7 +36,7 @@ class BookingFlowTest extends TestCase
             ->assertJsonPath('component', 'Doctors/Index')
             ->assertJsonPath('props.doctors.0.id', $doctor->id);
 
-        $this->inertiaGet("/doctors/{$doctor->id}")
+        $this->inertiaGet("/doctors/{$doctor->slug}")
             ->assertOk()
             ->assertJsonPath('component', 'Doctors/Show');
 
@@ -48,7 +48,7 @@ class BookingFlowTest extends TestCase
         $payload = $this->payload($doctor, $service, $date, '09:00');
 
         $this->actingAs($user)
-            ->getJson("/doctors/{$doctor->id}/availability?".http_build_query([
+            ->getJson("/doctors/{$doctor->slug}/availability?".http_build_query([
                 'date' => $date,
                 'service_ids' => [$service->id],
             ]))
@@ -76,7 +76,7 @@ class BookingFlowTest extends TestCase
             ->inertiaGet('/my-bookings')
             ->assertOk()
             ->assertJsonPath('component', 'Bookings/Index')
-            ->assertJsonPath('props.bookings.0.user_id', $user->id);
+            ->assertJsonPath('props.bookings.0.slug', fn ($slug) => is_string($slug));
     }
 
     public function test_api_booking_rejects_overlaps_and_keeps_cached_lists_isolated(): void
@@ -106,13 +106,13 @@ class BookingFlowTest extends TestCase
             ->getJson('/api/my-bookings')
             ->assertOk()
             ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.id', 1);
+            ->assertJsonPath('data.0.slug', fn ($slug) => is_string($slug));
 
         $this->asApiUser($secondUser)
             ->getJson('/api/my-bookings')
             ->assertOk()
             ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.id', 2);
+            ->assertJsonPath('data.0.slug', fn ($slug) => is_string($slug));
     }
 
     public function test_booking_rejects_other_doctor_services_and_replays_an_idempotent_request(): void
@@ -138,10 +138,37 @@ class BookingFlowTest extends TestCase
             ->withHeader('Idempotency-Key', 'replay-key')
             ->postJson('/api/bookings', $payload)
             ->assertOk()
-            ->assertJsonPath('data.id', $first->json('data.id'));
+            ->assertJsonPath('data.slug', $first->json('data.slug'));
 
         $this->assertDatabaseCount('bookings', 1);
         Queue::assertPushed(SendBookingConfirmationEmail::class, 1);
+    }
+
+    public function test_booking_details_are_scoped_to_the_authenticated_user(): void
+    {
+        Queue::fake();
+        [$doctor, $service, $date] = $this->bookingData();
+        $owner = $this->user('owner@example.test');
+        $otherUser = $this->user('other@example.test');
+
+        $response = $this->asApiUser($owner)
+            ->withHeader('Idempotency-Key', 'scoped-booking')
+            ->postJson('/api/bookings', $this->payload($doctor, $service, $date, '09:00'))
+            ->assertCreated();
+
+        $slug = $response->json('data.slug');
+
+        $this->asApiUser($otherUser)
+            ->getJson("/api/bookings/{$slug}")
+            ->assertNotFound();
+
+        $this->actingAs($otherUser)
+            ->get("/bookings/{$slug}")
+            ->assertNotFound();
+
+        $this->inertiaGet('/missing-page')
+            ->assertNotFound()
+            ->assertJsonPath('component', 'Errors/NotFound');
     }
 
     private function bookingData(string $code = 'DR-001'): array

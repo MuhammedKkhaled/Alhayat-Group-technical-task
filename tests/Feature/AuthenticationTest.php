@@ -35,6 +35,7 @@ class AuthenticationTest extends TestCase
     public function test_registration_route_is_not_available_and_login_is_rate_limited(): void
     {
         $this->get('/register')->assertNotFound();
+        $this->get('/missing-page')->assertNotFound()->assertSee('Page not found');
 
         for ($attempt = 0; $attempt < 5; $attempt++) {
             $this->postJson('/api/login', [
