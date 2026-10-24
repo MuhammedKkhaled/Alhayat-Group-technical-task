@@ -20,7 +20,7 @@ class BookingConfirmedMail extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: "Booking confirmation #{$this->booking->id}");
+        return new Envelope(subject: "Booking confirmation #{$this->booking->slug}");
     }
 
     public function content(): Content
