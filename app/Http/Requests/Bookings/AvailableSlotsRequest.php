@@ -15,8 +15,8 @@ class AvailableSlotsRequest extends FormRequest
     {
         return [
             'service_ids' => ['required', 'array', 'min:1'],
-            'service_ids.*' => ['required', 'integer', 'distinct'],
-            'date' => ['required', 'date_format:Y-m-d'],
+            'service_ids.*' => ['required', 'integer', 'distinct', 'exists:services,id'],
+            'date' => ['required', 'date_format:Y-m-d', 'after_or_equal:today'],
         ];
     }
 }

@@ -145,6 +145,32 @@ class BookingFlowTest extends TestCase
         Queue::assertPushed(SendBookingConfirmationEmail::class, 1);
     }
 
+    public function test_booking_requests_reject_past_dates_and_unknown_ids(): void
+    {
+        [$doctor, $service] = $this->bookingData();
+        $user = $this->user('patient@example.test');
+        $pastDate = CarbonImmutable::now()->subDay()->toDateString();
+
+        $this->actingAs($user)
+            ->getJson('/bookings/create?doctor_id=999&service_ids[]=999')
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['doctor_id', 'service_ids.0']);
+
+        $this->actingAs($user)
+            ->getJson("/doctors/{$doctor->slug}/availability?date={$pastDate}&service_ids[]=999")
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['date', 'service_ids.0']);
+
+        $this->asApiUser($user)
+            ->postJson('/api/bookings/preview', [
+                ...$this->payload($doctor, $service, $pastDate, '09:00'),
+                'doctor_id' => 999,
+                'service_ids' => [999],
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['date', 'doctor_id', 'service_ids.0']);
+    }
+
     public function test_booking_details_are_scoped_to_the_authenticated_user(): void
     {
         Queue::fake();

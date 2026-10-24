@@ -14,9 +14,9 @@ class BookingCreatePageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'doctor_id' => ['required', 'integer'],
+            'doctor_id' => ['required', 'integer', 'exists:doctors,id'],
             'service_ids' => ['required', 'array', 'min:1'],
-            'service_ids.*' => ['required', 'integer', 'distinct'],
+            'service_ids.*' => ['required', 'integer', 'distinct', 'exists:services,id'],
         ];
     }
 }
