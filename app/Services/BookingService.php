@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Jobs\SendBookingConfirmationEmail;
 use App\Models\Booking;
 use App\Models\User;
 use App\Repositories\Contracts\BookingRepositoryInterface;
@@ -45,18 +46,25 @@ class BookingService
                     $payload['start_time'],
                 );
 
+                $booking = $this->bookings->create(
+                    $user,
+                    $doctor,
+                    $appointment['services'],
+                    $appointment['starts_at'],
+                    $appointment['ends_at'],
+                    $appointment['total_price'],
+                    $appointment['total_duration_minutes'],
+                    $payload['idempotency_key'],
+                    $payloadHash,
+                );
+
+                SendBookingConfirmationEmail::dispatch($booking->id)
+                    ->onConnection('database')
+                    ->onQueue('email')
+                    ->afterCommit();
+
                 return [
-                    'booking' => $this->bookings->create(
-                        $user,
-                        $doctor,
-                        $appointment['services'],
-                        $appointment['starts_at'],
-                        $appointment['ends_at'],
-                        $appointment['total_price'],
-                        $appointment['total_duration_minutes'],
-                        $payload['idempotency_key'],
-                        $payloadHash,
-                    ),
+                    'booking' => $booking,
                     'replayed' => false,
                 ];
             }, attempts: 3);

@@ -7,6 +7,30 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+## Confirmation email queue
+
+Booking confirmations are sent through Mailtrap SMTP on the database-backed
+`email` queue. Set these values in your local `.env`; keep real Mailtrap
+credentials out of version control:
+
+```dotenv
+QUEUE_CONNECTION=database
+CACHE_STORE=redis
+MAIL_MAILER=smtp
+MAIL_HOST=sandbox.smtp.mailtrap.io
+MAIL_PORT=2525
+MAIL_USERNAME=YOUR_MAILTRAP_USERNAME
+MAIL_PASSWORD=YOUR_MAILTRAP_PASSWORD
+MAIL_FROM_ADDRESS=bookings@example.test
+MAIL_FROM_NAME="Doctor Booking"
+```
+
+Run the dedicated worker after migrating the application:
+
+```bash
+php artisan queue:work database --queue=email --tries=3
+```
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
