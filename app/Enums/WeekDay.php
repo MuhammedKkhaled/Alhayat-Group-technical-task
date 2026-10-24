@@ -2,7 +2,6 @@
 
 namespace App\Enums;
 
-/** PHP/Carbon numbering: Sunday = 0 through Saturday = 6. */
 enum WeekDay: int
 {
     case Sunday = 0;
