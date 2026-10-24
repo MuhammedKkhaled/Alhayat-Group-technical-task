@@ -19,10 +19,10 @@ class DoctorController extends Controller
         return DoctorResource::collection($this->doctors->activeDoctors());
     }
 
-    public function services(int $doctor): AnonymousResourceCollection
+    public function services(string $doctor): AnonymousResourceCollection
     {
         return ServiceResource::collection(
-            $this->doctors->findActiveWithServices($doctor)->services,
+            $this->doctors->findActiveWithServicesBySlug($doctor)->services,
         );
     }
 }

@@ -56,7 +56,7 @@ class BookingController extends Controller
         return BookingResource::collection($this->cache->getUserBookings($request->user()->id));
     }
 
-    public function show(Request $request, int $booking): BookingResource
+    public function show(Request $request, string $booking): BookingResource
     {
         return new BookingResource(
             $this->bookingRepository->findForUser($booking, $request->user()->id),
