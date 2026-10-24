@@ -20,10 +20,10 @@ class DoctorController extends Controller
         ]);
     }
 
-    public function show(int $doctor): Response
+    public function show(string $doctor): Response
     {
         return Inertia::render('Doctors/Show', [
-            'doctor' => $this->doctors->findActiveWithServices($doctor),
+            'doctor' => $this->doctors->findActiveWithServicesBySlug($doctor),
         ]);
     }
 }

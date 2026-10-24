@@ -8,6 +8,7 @@ use App\Http\Requests\Bookings\AvailableSlotsRequest;
 use App\Http\Requests\Bookings\BookingCreatePageRequest;
 use App\Http\Requests\Bookings\BookingPreviewRequest;
 use App\Http\Requests\Bookings\CreateBookingRequest;
+use App\Http\Resources\BookingResource;
 use App\Repositories\Contracts\BookingRepositoryInterface;
 use App\Repositories\Contracts\DoctorRepositoryInterface;
 use App\Services\AvailabilityService;
@@ -49,11 +50,13 @@ class BookingController extends Controller
         ]);
     }
 
-    public function availability(AvailableSlotsRequest $request, int $doctor): JsonResponse
+    public function availability(AvailableSlotsRequest $request, string $doctor): JsonResponse
     {
+        $doctor = $this->doctors->findActiveBySlug($doctor);
+
         return response()->json([
             'slots' => $this->availability->getAvailableSlots(
-                $doctor,
+                $doctor->id,
                 $request->validated('service_ids'),
                 $request->validated('date'),
             ),
@@ -90,14 +93,17 @@ class BookingController extends Controller
     public function index(Request $request): Response
     {
         return Inertia::render('Bookings/Index', [
-            'bookings' => $this->cache->getUserBookings($request->user()->id),
+            'bookings' => $this->cache->getUserBookings($request->user()->id)
+                ->map(fn ($booking) => (new BookingResource($booking))->resolve()),
         ]);
     }
 
-    public function show(Request $request, int $booking): Response
+    public function show(Request $request, string $booking): Response
     {
         return Inertia::render('Bookings/Show', [
-            'booking' => $this->bookingRepository->findForUser($booking, $request->user()->id),
+            'booking' => (new BookingResource(
+                $this->bookingRepository->findForUser($booking, $request->user()->id),
+            ))->resolve(),
         ]);
     }
 

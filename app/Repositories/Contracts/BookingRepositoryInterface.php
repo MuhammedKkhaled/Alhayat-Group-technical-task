@@ -16,7 +16,7 @@ interface BookingRepositoryInterface
 
     public function bookingsForUser(int $userId): Collection;
 
-    public function findForUser(int $bookingId, int $userId): Booking;
+    public function findForUser(string $bookingSlug, int $userId): Booking;
 
     public function create(
         User $user,

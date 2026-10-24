@@ -11,7 +11,11 @@ interface DoctorRepositoryInterface
 
     public function findActive(int $doctorId): Doctor;
 
+    public function findActiveBySlug(string $slug): Doctor;
+
     public function findActiveWithServices(int $doctorId): Doctor;
+
+    public function findActiveWithServicesBySlug(string $slug): Doctor;
 
     public function lockActive(int $doctorId): Doctor;
 }

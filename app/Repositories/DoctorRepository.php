@@ -24,10 +24,27 @@ class DoctorRepository implements DoctorRepositoryInterface
             ->firstOrFail();
     }
 
+    public function findActiveBySlug(string $slug): Doctor
+    {
+        return Doctor::query()
+            ->where('slug', $slug)
+            ->where('is_active', true)
+            ->firstOrFail();
+    }
+
     public function findActiveWithServices(int $doctorId): Doctor
     {
         return Doctor::query()
             ->whereKey($doctorId)
+            ->where('is_active', true)
+            ->with(['services' => fn ($query) => $query->where('is_active', true)->orderBy('name')])
+            ->firstOrFail();
+    }
+
+    public function findActiveWithServicesBySlug(string $slug): Doctor
+    {
+        return Doctor::query()
+            ->where('slug', $slug)
             ->where('is_active', true)
             ->with(['services' => fn ($query) => $query->where('is_active', true)->orderBy('name')])
             ->firstOrFail();

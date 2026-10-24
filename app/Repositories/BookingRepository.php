@@ -41,10 +41,10 @@ class BookingRepository implements BookingRepositoryInterface
             ->get();
     }
 
-    public function findForUser(int $bookingId, int $userId): Booking
+    public function findForUser(string $bookingSlug, int $userId): Booking
     {
         return Booking::query()
-            ->whereKey($bookingId)
+            ->where('slug', $bookingSlug)
             ->where('user_id', $userId)
             ->with(['doctor', 'services'])
             ->firstOrFail();
