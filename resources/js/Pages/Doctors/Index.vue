@@ -19,7 +19,7 @@ defineProps({ doctors: { type: Array, required: true } });
                 <div class="flex h-11 w-11 items-center justify-center rounded-full bg-teal-100 font-bold text-teal-800">{{ doctor.name.charAt(0) }}</div>
                 <h2 class="mt-4 text-lg font-bold">{{ doctor.name }}</h2>
                 <p class="mt-1 text-sm text-slate-500">{{ doctor.code }}</p>
-                <Link :href="`/doctors/${doctor.id}`" class="mt-6 inline-flex rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-800">View services</Link>
+                <Link :href="`/doctors/${doctor.slug}`" class="mt-6 inline-flex rounded-lg bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-800">View services</Link>
             </article>
         </section>
     </AppLayout>

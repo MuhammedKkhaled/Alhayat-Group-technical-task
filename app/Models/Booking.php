@@ -8,11 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class Booking extends Model
 {
     protected $fillable = [
-        'user_id', 'doctor_id', 'starts_at', 'ends_at', 'total_price',
+        'slug', 'user_id', 'doctor_id', 'starts_at', 'ends_at', 'total_price',
         'total_duration_minutes', 'status', 'idempotency_key', 'idempotency_payload_hash',
         'doctor_name_snapshot', 'rescheduled_at',
     ];
@@ -33,8 +34,16 @@ class Booking extends Model
     {
         parent::boot();
 
+        static::creating(function (Booking $booking) {
+            $booking->slug ??= (string) Str::uuid();
+        });
         static::saved(fn (Booking $booking) => static::refreshUserBookingsAfterCommit($booking->user_id));
         static::deleted(fn (Booking $booking) => static::refreshUserBookingsAfterCommit($booking->user_id));
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
     }
 
     public function user(): BelongsTo

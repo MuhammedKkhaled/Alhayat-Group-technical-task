@@ -16,8 +16,8 @@ function formatDate(value) {
         <article class="mt-5 max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
             <div class="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                    <p class="text-sm font-semibold uppercase tracking-widest text-teal-700">Booking #{{ booking.id }}</p>
-                    <h1 class="mt-2 text-2xl font-bold">{{ booking.doctor_name_snapshot }}</h1>
+                    <p class="text-sm font-semibold uppercase tracking-widest text-teal-700">Booking reference {{ booking.slug }}</p>
+                    <h1 class="mt-2 text-2xl font-bold">{{ booking.doctor.name }}</h1>
                 </div>
                 <span class="rounded-full bg-teal-100 px-3 py-1 text-xs font-bold capitalize text-teal-800">{{ booking.status }}</span>
             </div>
@@ -36,8 +36,8 @@ function formatDate(value) {
             <h2 class="mt-7 text-lg font-bold">Services</h2>
             <ul class="mt-3 divide-y divide-slate-200">
                 <li v-for="service in booking.services" :key="service.id" class="flex items-center justify-between gap-4 py-3">
-                    <span><span class="block font-medium">{{ service.pivot.service_name_snapshot }}</span><span class="text-sm text-slate-500">{{ service.pivot.duration_minutes_snapshot }} minutes</span></span>
-                    <span class="font-semibold">{{ Number(service.pivot.price_snapshot).toFixed(2) }}</span>
+                    <span><span class="block font-medium">{{ service.name }}</span><span class="text-sm text-slate-500">{{ service.duration_minutes }} minutes</span></span>
+                    <span class="font-semibold">{{ Number(service.price).toFixed(2) }}</span>
                 </li>
             </ul>
 

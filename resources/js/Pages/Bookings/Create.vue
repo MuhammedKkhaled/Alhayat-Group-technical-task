@@ -37,7 +37,7 @@ async function fetchSlots() {
 
     loadingSlots.value = true;
     try {
-        const response = await window.axios.get(`/doctors/${props.doctor.id}/availability`, {
+        const response = await window.axios.get(`/doctors/${props.doctor.slug}/availability`, {
             params: { date: form.date, service_ids: form.service_ids },
         });
         slots.value = response.data.slots;
@@ -88,7 +88,7 @@ watch(() => form.start_time, () => {
     <Head title="Choose appointment time" />
     <AppLayout>
         <BookingSteps :current="preview ? 3 : 2" />
-        <Link :href="`/doctors/${doctor.id}`" class="text-sm font-semibold text-teal-800 hover:text-teal-950">← Edit services</Link>
+        <Link :href="`/doctors/${doctor.slug}`" class="text-sm font-semibold text-teal-800 hover:text-teal-950">← Edit services</Link>
         <div class="mt-5 grid gap-8 lg:grid-cols-[1fr_24rem]">
             <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                 <p class="text-sm font-semibold uppercase tracking-widest text-teal-700">{{ doctor.name }}</p>

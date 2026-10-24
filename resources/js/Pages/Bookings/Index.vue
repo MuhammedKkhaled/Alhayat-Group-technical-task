@@ -26,15 +26,15 @@ function formatDate(value) {
         </div>
 
         <div v-else class="mt-8 space-y-4">
-            <Link v-for="booking in bookings" :key="booking.id" :href="`/bookings/${booking.id}`" class="block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-teal-500 hover:shadow">
+            <Link v-for="booking in bookings" :key="booking.slug" :href="`/bookings/${booking.slug}`" class="block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-teal-500 hover:shadow">
                 <div class="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                        <p class="font-bold">{{ booking.doctor_name_snapshot }}</p>
+                        <p class="font-bold">{{ booking.doctor.name }}</p>
                         <p class="mt-1 text-sm text-slate-600">{{ formatDate(booking.starts_at) }}</p>
                     </div>
                     <span class="rounded-full bg-teal-100 px-3 py-1 text-xs font-bold capitalize text-teal-800">{{ booking.status }}</span>
                 </div>
-                <p class="mt-4 text-sm text-slate-600">{{ booking.services.map((service) => service.pivot.service_name_snapshot).join(', ') }}</p>
+                <p class="mt-4 text-sm text-slate-600">{{ booking.services.map((service) => service.name).join(', ') }}</p>
                 <div class="mt-4 flex flex-wrap gap-4 text-sm font-semibold text-slate-700">
                     <span>{{ booking.total_duration_minutes }} minutes</span>
                     <span>{{ Number(booking.total_price).toFixed(2) }}</span>

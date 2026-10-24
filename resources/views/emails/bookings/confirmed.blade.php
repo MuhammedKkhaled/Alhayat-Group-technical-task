@@ -7,7 +7,7 @@
 <body>
     <h1>Your booking is confirmed</h1>
 
-    <p>Booking reference: #{{ $booking->id }}</p>
+    <p>Booking reference: {{ $booking->slug }}</p>
     <p>Doctor: {{ $booking->doctor_name_snapshot }}</p>
     <p>Date: {{ $booking->starts_at->format('F j, Y') }}</p>
     <p>Time: {{ $booking->starts_at->format('H:i') }}–{{ $booking->ends_at->format('H:i') }}</p>
