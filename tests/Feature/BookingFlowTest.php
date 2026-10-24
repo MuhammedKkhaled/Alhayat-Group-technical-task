@@ -76,7 +76,8 @@ class BookingFlowTest extends TestCase
             ->inertiaGet('/my-bookings')
             ->assertOk()
             ->assertJsonPath('component', 'Bookings/Index')
-            ->assertJsonPath('props.bookings.0.slug', fn ($slug) => is_string($slug));
+            ->assertJsonPath('props.bookings.0.slug', fn ($slug) => is_string($slug))
+            ->assertJsonPath('props.bookings.0.services.0.name', 'Consultation');
     }
 
     public function test_api_booking_rejects_overlaps_and_keeps_cached_lists_isolated(): void

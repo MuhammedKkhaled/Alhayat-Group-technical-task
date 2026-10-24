@@ -16,22 +16,21 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->middleware('auth')
     ->name('logout');
 
-Route::get('/doctors', [DoctorController::class, 'index'])
-    ->middleware('throttle:catalog')
-    ->name('doctors.index');
-Route::get('/doctors/{doctor}', [DoctorController::class, 'show'])
-    ->middleware('throttle:catalog')
-    ->name('doctors.show');
-Route::get('/doctors/{doctor}/availability', [BookingController::class, 'availability'])
-    ->middleware('throttle:catalog')
-    ->name('doctors.availability');
+Route::prefix('doctors')->name('doctors.')->middleware('throttle:catalog')->group(function () {
+    Route::get('/', [DoctorController::class, 'index'])->name('index');
+    Route::get('/{doctor}', [DoctorController::class, 'show'])->name('show');
+    Route::get('/{doctor}/availability', [BookingController::class, 'availability'])->name('availability');
+});
 
 Route::middleware('auth')->group(function () {
-    Route::get('/bookings/create', [BookingController::class, 'create'])->name('bookings.create');
-    Route::post('/bookings/preview', [BookingController::class, 'preview'])->name('bookings.preview');
-    Route::post('/bookings', [BookingController::class, 'store'])
-        ->middleware('throttle:bookings')
-        ->name('bookings.store');
     Route::get('/my-bookings', [BookingController::class, 'index'])->name('bookings.index');
-    Route::get('/bookings/{booking}', [BookingController::class, 'show'])->name('bookings.show');
+
+    Route::prefix('bookings')->name('bookings.')->group(function () {
+        Route::get('/create', [BookingController::class, 'create'])->name('create');
+        Route::post('/preview', [BookingController::class, 'preview'])->name('preview');
+        Route::post('/', [BookingController::class, 'store'])
+            ->middleware('throttle:bookings')
+            ->name('store');
+        Route::get('/{booking}', [BookingController::class, 'show'])->name('show');
+    });
 });

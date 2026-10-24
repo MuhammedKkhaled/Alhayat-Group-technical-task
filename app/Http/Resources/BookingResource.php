@@ -16,7 +16,7 @@ class BookingResource extends JsonResource
                 'id' => $this->doctor_id,
                 'name' => $this->doctor_name_snapshot,
             ],
-            'services' => ServiceResource::collection($this->services),
+            'services' => ServiceResource::collection($this->services)->resolve($request),
             'total_price' => $this->total_price,
             'total_duration_minutes' => $this->total_duration_minutes,
             'starts_at' => $this->starts_at->toIso8601String(),
