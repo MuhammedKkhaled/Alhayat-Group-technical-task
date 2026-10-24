@@ -3,8 +3,9 @@
 namespace App\Repositories;
 
 use App\Models\Doctor;
+use App\Repositories\Contracts\DoctorRepositoryInterface;
 
-class DoctorRepository
+class DoctorRepository implements DoctorRepositoryInterface
 {
     public function findActive(int $doctorId): Doctor
     {

@@ -13,6 +13,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'destroy']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::get('/user', [AuthController::class, 'me']);
+    Route::get('/my-bookings', [BookingController::class, 'index']);
     Route::post('/bookings/preview', [BookingController::class, 'preview']);
     Route::post('/bookings', [BookingController::class, 'store'])->middleware('throttle:bookings');
 });

@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use App\Enums\BookingStatus;
+use App\Services\Cache\CacheService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Facades\DB;
 
 class Booking extends Model
 {
@@ -27,6 +29,14 @@ class Booking extends Model
         ];
     }
 
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        static::saved(fn (Booking $booking) => static::refreshUserBookingsAfterCommit($booking->user_id));
+        static::deleted(fn (Booking $booking) => static::refreshUserBookingsAfterCommit($booking->user_id));
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -43,5 +53,10 @@ class Booking extends Model
             ->withTrashed()
             ->withPivot(['service_name_snapshot', 'price_snapshot', 'duration_minutes_snapshot'])
             ->withTimestamps();
+    }
+
+    private static function refreshUserBookingsAfterCommit(int $userId): void
+    {
+        DB::afterCommit(fn () => app(CacheService::class)->cacheUserBookings($userId));
     }
 }

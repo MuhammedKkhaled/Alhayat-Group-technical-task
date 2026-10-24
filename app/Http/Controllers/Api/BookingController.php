@@ -9,13 +9,16 @@ use App\Http\Requests\Bookings\CreateBookingRequest;
 use App\Models\Booking;
 use App\Services\AvailabilityService;
 use App\Services\BookingService;
+use App\Services\Cache\CacheService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class BookingController extends Controller
 {
     public function __construct(
         private readonly AvailabilityService $availability,
         private readonly BookingService $bookings,
+        private readonly CacheService $cache,
     ) {
     }
 
@@ -45,6 +48,15 @@ class BookingController extends Controller
         } catch (SlotUnavailableException $exception) {
             return response()->json(['message' => $exception->getMessage()], 409);
         }
+    }
+
+    public function index(Request $request): JsonResponse
+    {
+        return response()->json([
+            'bookings' => $this->cache->getUserBookings($request->user()->id)
+                ->map(fn (Booking $booking) => $this->bookingResponse($booking))
+                ->values(),
+        ]);
     }
 
     private function previewResponse(array $preview): array

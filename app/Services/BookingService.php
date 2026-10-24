@@ -4,8 +4,8 @@ namespace App\Services;
 
 use App\Models\Booking;
 use App\Models\User;
-use App\Repositories\BookingRepository;
-use App\Repositories\DoctorRepository;
+use App\Repositories\Contracts\BookingRepositoryInterface;
+use App\Repositories\Contracts\DoctorRepositoryInterface;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -14,8 +14,8 @@ class BookingService
 {
     public function __construct(
         private readonly AvailabilityService $availability,
-        private readonly BookingRepository $bookings,
-        private readonly DoctorRepository $doctors,
+        private readonly BookingRepositoryInterface $bookings,
+        private readonly DoctorRepositoryInterface $doctors,
     ) {
     }
 

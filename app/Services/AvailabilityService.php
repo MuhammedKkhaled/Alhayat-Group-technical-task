@@ -5,20 +5,20 @@ namespace App\Services;
 use App\Exceptions\SlotUnavailableException;
 use App\Models\Doctor;
 use App\Models\Service;
-use App\Repositories\BookingRepository;
-use App\Repositories\DoctorRepository;
+use App\Repositories\Contracts\BookingRepositoryInterface;
+use App\Repositories\Contracts\DoctorRepositoryInterface;
+use App\Repositories\Contracts\ServiceRepositoryInterface;
 use App\Repositories\DoctorScheduleRepository;
-use App\Repositories\ServiceRepository;
 use Carbon\CarbonImmutable;
 use Illuminate\Validation\ValidationException;
 
 class AvailabilityService
 {
     public function __construct(
-        private readonly DoctorRepository $doctors,
-        private readonly ServiceRepository $services,
+        private readonly DoctorRepositoryInterface $doctors,
+        private readonly ServiceRepositoryInterface $services,
         private readonly DoctorScheduleRepository $schedules,
-        private readonly BookingRepository $bookings,
+        private readonly BookingRepositoryInterface $bookings,
     ) {
     }
 

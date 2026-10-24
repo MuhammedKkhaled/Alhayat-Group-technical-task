@@ -7,10 +7,11 @@ use App\Models\Booking;
 use App\Models\Doctor;
 use App\Models\Service;
 use App\Models\User;
+use App\Repositories\Contracts\BookingRepositoryInterface;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 
-class BookingRepository
+class BookingRepository implements BookingRepositoryInterface
 {
     public function hasConfirmedOverlap(int $doctorId, CarbonInterface $startsAt, CarbonInterface $endsAt): bool
     {
@@ -29,6 +30,15 @@ class BookingRepository
             ->where('idempotency_key', $key)
             ->with(['doctor', 'services'])
             ->first();
+    }
+
+    public function bookingsForUser(int $userId): Collection
+    {
+        return Booking::query()
+            ->where('user_id', $userId)
+            ->with(['doctor', 'services'])
+            ->latest('starts_at')
+            ->get();
     }
 
     /** @param Collection<int, Service> $services */
