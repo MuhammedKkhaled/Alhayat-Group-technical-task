@@ -89,6 +89,8 @@ and Telescope tables.
 Open `/login`, sign in with the demo account, select a doctor and one or more
 services, choose a date/time, review the server-calculated appointment, then
 confirm it. My Bookings reads only the signed-in user’s Redis-cached list.
+Public doctor and booking-detail URLs use slugs; booking lookups also scope the
+slug to the authenticated user, returning 404 for another user's booking.
 
 Prices and durations always come from selected database services. Availability
 uses one weekly schedule table plus optional full-day date closures. Booking
@@ -100,7 +102,7 @@ deletes. Cancellation and rescheduling are not implemented.
 
 Use `POST /api/login` with `email` and `password` to receive a Sanctum token.
 Send it as `Authorization: Bearer TOKEN` for protected endpoints. Public routes
-include `/api/doctors`, `/api/doctors/{doctor}/services`, and availability.
+include `/api/doctors`, `/api/doctors/{doctor-slug}/services`, and availability.
 Protected routes include booking preview, confirmation, My Bookings, and booking
 details. Booking confirmation requires an `Idempotency-Key` header.
 
