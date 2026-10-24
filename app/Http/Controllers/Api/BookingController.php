@@ -6,7 +6,8 @@ use App\Exceptions\SlotUnavailableException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Bookings\BookingPreviewRequest;
 use App\Http\Requests\Bookings\CreateBookingRequest;
-use App\Models\Booking;
+use App\Http\Resources\BookingResource;
+use App\Repositories\Contracts\BookingRepositoryInterface;
 use App\Services\AvailabilityService;
 use App\Services\BookingService;
 use App\Services\Cache\CacheService;
@@ -19,6 +20,7 @@ class BookingController extends Controller
         private readonly AvailabilityService $availability,
         private readonly BookingService $bookings,
         private readonly CacheService $cache,
+        private readonly BookingRepositoryInterface $bookingRepository,
     ) {
     }
 
@@ -41,22 +43,24 @@ class BookingController extends Controller
         try {
             $result = $this->bookings->create($request->user(), $request->validated());
 
-            return response()->json(
-                $this->bookingResponse($result['booking']),
-                $result['replayed'] ? 200 : 201,
-            );
+            return (new BookingResource($result['booking']))
+                ->response()
+                ->setStatusCode($result['replayed'] ? 200 : 201);
         } catch (SlotUnavailableException $exception) {
             return response()->json(['message' => $exception->getMessage()], 409);
         }
     }
 
-    public function index(Request $request): JsonResponse
+    public function index(Request $request)
     {
-        return response()->json([
-            'bookings' => $this->cache->getUserBookings($request->user()->id)
-                ->map(fn (Booking $booking) => $this->bookingResponse($booking))
-                ->values(),
-        ]);
+        return BookingResource::collection($this->cache->getUserBookings($request->user()->id));
+    }
+
+    public function show(Request $request, int $booking): BookingResource
+    {
+        return new BookingResource(
+            $this->bookingRepository->findForUser($booking, $request->user()->id),
+        );
     }
 
     private function previewResponse(array $preview): array
@@ -73,25 +77,6 @@ class BookingController extends Controller
             'total_duration_minutes' => $preview['total_duration_minutes'],
             'starts_at' => $preview['starts_at']->toIso8601String(),
             'ends_at' => $preview['ends_at']->toIso8601String(),
-        ];
-    }
-
-    private function bookingResponse(Booking $booking): array
-    {
-        return [
-            'id' => $booking->id,
-            'status' => $booking->status->value,
-            'doctor' => ['id' => $booking->doctor_id, 'name' => $booking->doctor_name_snapshot],
-            'services' => $booking->services->map(fn ($service) => [
-                'id' => $service->id,
-                'name' => $service->pivot->service_name_snapshot,
-                'price' => $service->pivot->price_snapshot,
-                'duration_minutes' => $service->pivot->duration_minutes_snapshot,
-            ])->values(),
-            'total_price' => $booking->total_price,
-            'total_duration_minutes' => $booking->total_duration_minutes,
-            'starts_at' => $booking->starts_at->toIso8601String(),
-            'ends_at' => $booking->ends_at->toIso8601String(),
         ];
     }
 }
