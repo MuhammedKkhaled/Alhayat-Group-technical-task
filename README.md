@@ -1,21 +1,76 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Doctor Booking
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A Laravel 12 doctor-booking application with Vue 3, Inertia, Tailwind CSS, and
+Vite in one codebase. Laravel owns authentication, validation, booking rules,
+and persistence; Vue renders the session-authenticated web experience.
 
-## Confirmation email queue
+```text
+Web / API controller → Booking or Availability service → Repository → MySQL
+                                          ↓
+                          Redis booking-list cache / database email queue
+```
 
-Booking confirmations are sent through Mailtrap SMTP on the database-backed
-`email` queue. Set these values in your local `.env`; keep real Mailtrap
-credentials out of version control:
+Sanctum remains available for external JSON API clients. Browser pages use
+normal Laravel sessions and CSRF protection; they never store bearer tokens.
+
+## Requirements
+
+- PHP `^8.5.12`, Composer, and Laravel `^12.70.1`
+- Node.js and npm compatible with Vite `^7.0.7`
+- MySQL with InnoDB for application data, sessions, queues, failed jobs, and
+  Telescope entries
+- Redis with `phpredis` or Predis, used only for cache storage
+- A Mailtrap SMTP sandbox for confirmation emails
+
+## Local setup
+
+```bash
+composer install
+npm install
+cp .env.example .env
+php artisan key:generate
+# Configure MySQL, Redis, Mailtrap, and Telescope in .env
+php artisan migrate --seed
+php artisan serve
+```
+
+In another terminal, run the frontend development server:
+
+```bash
+npm run dev
+```
+
+Build production assets with `npm run build`. Start the email worker in a
+third terminal:
+
+```bash
+php artisan queue:work database --queue=email --tries=3
+```
+
+The seeded demo account is `patient@example.test` with password `password123`.
+There is no registration page or endpoint.
+
+## Environment
+
+Use MySQL/InnoDB for bookings, database sessions, Telescope, and database
+queues. Redis is only the cache store.
 
 ```dotenv
-QUEUE_CONNECTION=database
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=doctor_booking
+DB_USERNAME=YOUR_MYSQL_USER
+DB_PASSWORD=YOUR_MYSQL_PASSWORD
+
 CACHE_STORE=redis
+SESSION_DRIVER=database
+QUEUE_CONNECTION=database
+REDIS_CLIENT=phpredis
+TELESCOPE_ENABLED=true
+BOOKING_SLOT_INTERVAL=30
+BOOKING_USER_CACHE_TTL=3600
+
 MAIL_MAILER=smtp
 MAIL_HOST=sandbox.smtp.mailtrap.io
 MAIL_PORT=2525
@@ -25,59 +80,40 @@ MAIL_FROM_ADDRESS=bookings@example.test
 MAIL_FROM_NAME="Doctor Booking"
 ```
 
-Run the dedicated worker after migrating the application:
+Create the MySQL database before migrating. Do not commit `.env` or real SMTP
+credentials. The existing migrations create `sessions`, `jobs`, `failed_jobs`,
+and Telescope tables.
 
-```bash
-php artisan queue:work database --queue=email --tries=3
-```
+## Using the application
 
-## About Laravel
+Open `/login`, sign in with the demo account, select a doctor and one or more
+services, choose a date/time, review the server-calculated appointment, then
+confirm it. My Bookings reads only the signed-in user’s Redis-cached list.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Prices and durations always come from selected database services. Availability
+uses one weekly schedule table plus optional full-day date closures. Booking
+creation locks the doctor row and rejects any overlapping confirmed interval.
+Service and doctor snapshots preserve booking history after later edits or soft
+deletes. Cancellation and rescheduling are not implemented.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## JSON API
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Use `POST /api/login` with `email` and `password` to receive a Sanctum token.
+Send it as `Authorization: Bearer TOKEN` for protected endpoints. Public routes
+include `/api/doctors`, `/api/doctors/{doctor}/services`, and availability.
+Protected routes include booking preview, confirmation, My Bookings, and booking
+details. Booking confirmation requires an `Idempotency-Key` header.
 
-## Learning Laravel
+## Telescope and operations
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+Telescope is installed as a development dependency, registered only for the
+local environment, and available at `/telescope`. It records requests, queries,
+Redis activity, jobs, mail, cache activity, and exceptions while redacting
+passwords, bearer tokens, session cookies, and CSRF values. Prune entries with
+`php artisan telescope:prune`; the scheduler already runs this daily.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-## Laravel Sponsors
-
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
-
-### Premium Partners
-
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Run `composer run test` for PHPUnit coverage and `npm run build` before release.
+For concurrency verification, run the overlap test suite against a dedicated
+MySQL/InnoDB test database; the default PHPUnit configuration uses in-memory
+SQLite and cannot validate row locking. Keep the database email worker under a
+process manager in production.
