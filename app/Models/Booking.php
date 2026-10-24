@@ -11,7 +11,8 @@ class Booking extends Model
 {
     protected $fillable = [
         'user_id', 'doctor_id', 'starts_at', 'ends_at', 'total_price',
-        'total_duration_minutes', 'status', 'doctor_name_snapshot', 'rescheduled_at',
+        'total_duration_minutes', 'status', 'idempotency_key', 'idempotency_payload_hash',
+        'doctor_name_snapshot', 'rescheduled_at',
     ];
 
     protected function casts(): array

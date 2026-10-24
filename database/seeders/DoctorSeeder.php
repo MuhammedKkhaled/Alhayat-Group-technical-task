@@ -11,7 +11,7 @@ class DoctorSeeder extends Seeder
     {
         Doctor::firstOrCreate(
             ['code' => 'DR-001'],
-            ['name' => 'Dr. Amira Hassan', 'is_active' => true],
+            ['name' => 'Dr. Mohamed Elseadey', 'is_active' => true],
         );
     }
 }
