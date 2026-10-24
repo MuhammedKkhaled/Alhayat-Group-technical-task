@@ -47,7 +47,7 @@ third terminal:
 php artisan queue:work database --queue=email --tries=3
 ```
 
-The seeded demo account is `patient@example.test` with password `password123`.
+The seeded demo account is `patient@gmail.com` with password `password123`.
 There is no registration page or endpoint.
 
 ## Environment
