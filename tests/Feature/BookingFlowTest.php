@@ -46,6 +46,7 @@ class BookingFlowTest extends TestCase
             ->assertJsonPath('component', 'Bookings/Create');
 
         $payload = $this->payload($doctor, $service, $date, '09:00');
+        $startsAt = CarbonImmutable::parse("{$date} 09:00", config('app.timezone'));
 
         $this->actingAs($user)
             ->getJson("/doctors/{$doctor->slug}/availability?".http_build_query([
@@ -58,6 +59,8 @@ class BookingFlowTest extends TestCase
         $this->actingAs($user)
             ->postJson('/bookings/preview', $payload)
             ->assertOk()
+            ->assertJsonPath('starts_at', $startsAt->toIso8601String())
+            ->assertJsonPath('ends_at', $startsAt->addHour()->toIso8601String())
             ->assertJsonPath('total_duration_minutes', 60)
             ->assertJsonPath('total_price', '150.00');
 
@@ -76,6 +79,7 @@ class BookingFlowTest extends TestCase
             ->inertiaGet('/my-bookings')
             ->assertOk()
             ->assertJsonPath('component', 'Bookings/Index')
+            ->assertJsonPath('props.bookings.0.starts_at', $startsAt->toIso8601String())
             ->assertJsonPath('props.bookings.0.slug', fn ($slug) => is_string($slug))
             ->assertJsonPath('props.bookings.0.services.0.name', 'Consultation');
     }
